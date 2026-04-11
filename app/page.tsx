@@ -1,77 +1,125 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { TrashIcon, PencilIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 interface Item {
-  id: number;
+  _id: string;
   name: string;
   email: string;
   status: string;
-  date: string;
+  password?: string;
 }
 
 export default function Page() {
-  const [items, setItems] = useState<Item[]>([
-    { id: 1, name: 'John Doe', email: 'john@example.com', status: 'Active', date: '2024-01-15' },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', status: 'Active', date: '2024-01-16' },
-    { id: 3, name: 'Bob Johnson', email: 'bob@example.com', status: 'Inactive', date: '2024-01-17' },
-  ]);
+  const [items, setItems] = useState<Item[]>([]);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
-  const [formData, setFormData] = useState({ name: '', email: '', status: 'Active', date: new Date().toISOString().split('T')[0] });
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({ name: '', email: '', status: 'Active', password: '' });
 
   const handleAddClick = () => {
-    setFormData({ name: '', email: '', status: 'Active', date: new Date().toISOString().split('T')[0] });
+    setFormData({ name: '', email: '', status: 'Active', password: '' });
     setShowAddModal(true);
   };
 
   const handleEditClick = (item: Item) => {
     setEditingItem(item);
-    setFormData({ name: item.name, email: item.email, status: item.status, date: item.date });
+    setFormData({ name: item.name, email: item.email, status: item.status, password: '' });
     setShowEditModal(true);
   };
 
-  const handleDeleteClick = (id: number) => {
+  const handleDeleteClick = (id: string) => {
     if (confirm('Are you sure you want to delete this item?')) {
-      setItems(items.filter(item => item.id !== id));
+      fetch(`/api/users/${id}`, { method: 'DELETE' })
+        .then(res => {
+          if (res.ok) {
+            setItems(prev => prev.filter(item => item._id !== id));
+          } else {
+            console.error('Failed to delete user:', res);
+          }
+        })
+        .catch(error => console.error('Error deleting item:', error));
     }
   };
 
-  const handleAddSubmit = (e: React.FormEvent) => {
+  const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newItem: Item = {
-      id: Math.max(...items.map(i => i.id), 0) + 1,
-      name: formData.name,
-      email: formData.email,
-      status: formData.status,
-      date: formData.date,
-    };
-    setItems([...items, newItem]);
-    setShowAddModal(false);
-    setFormData({ name: '', email: '', status: 'Active', date: new Date().toISOString().split('T')[0] });
+
+    if (loading) return; // ✅ prevent double call
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        fetchUsers()
+        // setItems(prev => [...prev, data]);
+        setShowAddModal(false);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+
+    setLoading(false);
   };
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingItem) {
-      setItems(items.map(item =>
-        item.id === editingItem.id
-          ? { ...item, name: formData.name, email: formData.email, status: formData.status, date: formData.date }
-          : item
-      ));
-      setShowEditModal(false);
-      setEditingItem(null);
-      setFormData({ name: '', email: '', status: 'Active', date: new Date().toISOString().split('T')[0] });
+    if (!editingItem) return;
+
+    try {
+      const updatePayload: Record<string, string> = {
+        name: formData.name,
+        email: formData.email,
+        status: formData.status,
+      };
+
+      if (formData.password.trim()) {
+        updatePayload.password = formData.password;
+      }
+
+      const res = await fetch(`/api/users/${editingItem._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatePayload),
+      });
+
+      if (res.ok) {
+        const updatedUser = await res.json();
+        setItems(prev => prev.map(item => item._id === editingItem._id ? updatedUser : item));
+      } else {
+        console.log('Failed to update user:', res);
+      }
+    } catch (error) {
+      console.error('Error updating item:', error);
     }
+    setShowEditModal(false);
+    setEditingItem(null);
+    setFormData({ name: '', email: '', status: 'Active', password: '' });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+
+  const fetchUsers = async () => {
+    const res = await fetch("/api/users");
+    setItems(res.ok ? await res.json() : []);
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   return (
     <div className='w-full min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-8'>
@@ -100,20 +148,24 @@ export default function Page() {
                   <th className='px-6 py-4 text-left text-sm font-semibold text-white'>Name</th>
                   <th className='px-6 py-4 text-left text-sm font-semibold text-white'>Email</th>
                   <th className='px-6 py-4 text-left text-sm font-semibold text-white'>Status</th>
-                  <th className='px-6 py-4 text-left text-sm font-semibold text-white'>Date</th>
+                  <th className='px-6 py-4 text-left text-sm font-semibold text-white'>Password</th>
                   <th className='px-6 py-4 text-center text-sm font-semibold text-white'>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {items.length > 0 ? (
-                  items.map((item, index) => (
+                {items?.length > 0 ? (
+                  items?.map((item, index) => (
                     <tr
-                      key={item.id}
+                      key={item?._id || index}
                       className={`border-b border-slate-700 hover:bg-slate-700 transition ${index % 2 === 0 ? 'bg-slate-800' : 'bg-slate-750'
                         }`}
                     >
-                      <td className='px-6 py-4 text-sm text-white font-medium'>{item.name}</td>
-                      <td className='px-6 py-4 text-sm text-slate-300'>{item.email}</td>
+                      <td className='px-6 py-4 text-sm text-white font-medium'>
+                        {item.name}
+                      </td>
+                      <td className='px-6 py-4 text-sm text-slate-300'>
+                        {item.email}
+                      </td>
                       <td className='px-6 py-4 text-sm'>
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${item.status === 'Active'
@@ -124,7 +176,9 @@ export default function Page() {
                           {item.status}
                         </span>
                       </td>
-                      <td className='px-6 py-4 text-sm text-slate-300'>{item.date}</td>
+                      <td className='px-6 py-4 text-sm text-slate-300'>
+                        **********
+                      </td>
                       <td className='px-6 py-4 text-center'>
                         <div className='flex justify-center gap-2'>
                           <button
@@ -135,7 +189,7 @@ export default function Page() {
                             <PencilIcon className='w-4 h-4' />
                           </button>
                           <button
-                            onClick={() => handleDeleteClick(item.id)}
+                            onClick={() => handleDeleteClick(item._id)}
                             className='bg-red-600 hover:bg-red-700 text-white p-2 rounded transition duration-200'
                             title='Delete'
                           >
@@ -212,11 +266,11 @@ export default function Page() {
                 </div>
 
                 <div className='mb-6'>
-                  <label className='block text-sm font-medium text-white mb-2'>Date</label>
+                  <label className='block text-sm font-medium text-white mb-2'>Password</label>
                   <input
-                    type='date'
-                    name='date'
-                    value={formData.date}
+                    type='password'
+                    name='password'
+                    value={formData.password}
                     onChange={handleInputChange}
                     required
                     className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
@@ -226,9 +280,10 @@ export default function Page() {
                 <div className='flex gap-3'>
                   <button
                     type='submit'
+                    disabled={loading}
                     className='flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200'
                   >
-                    Add Item
+                    {loading ? "Adding..." : "Add Item"}
                   </button>
                   <button
                     type='button'
@@ -292,19 +347,18 @@ export default function Page() {
                     onChange={handleInputChange}
                     className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
                   >
-                    <option value='Active'>Active</option>
-                    <option value='Inactive'>Inactive</option>
+                    <option value='active'>Active</option>
+                    <option value='inactive'>Inactive</option>
                   </select>
                 </div>
 
                 <div className='mb-6'>
-                  <label className='block text-sm font-medium text-white mb-2'>Date</label>
+                  <label className='block text-sm font-medium text-white mb-2'>Password</label>
                   <input
-                    type='date'
-                    name='date'
-                    value={formData.date}
+                    type='password'
+                    name='password'
+                    value={formData.password}
                     onChange={handleInputChange}
-                    required
                     className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
                   />
                 </div>
