@@ -6,9 +6,9 @@ db().catch((error) => {
     console.error("❌ MongoDB Connection Error:", error);
 });
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     await db();
-    const { id } = params;
+    const { id } = await params;
     const user = await User.findById(id).select('-password');
 
     if (!user) {
@@ -17,7 +17,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     return Response.json(user);
 }
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         await db();
         const { id } = await params;
@@ -51,7 +51,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
     await db();
-    const { id } =await params;
+    const { id } = await params;
     const deletedUser = await User.findByIdAndDelete({ _id: id });
 
     if (!deletedUser) {
