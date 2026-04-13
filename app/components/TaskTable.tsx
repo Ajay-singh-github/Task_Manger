@@ -6,9 +6,10 @@ interface TaskTableProps {
   tasks: Task[];
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
+  isLoading?: boolean;
 }
 
-export const TaskTable = ({ tasks, onEdit, onDelete }: TaskTableProps) => {
+export const TaskTable = ({ tasks, onEdit, onDelete, isLoading }: TaskTableProps) => {
   return (
     <div className='bg-slate-800 rounded-lg shadow-xl overflow-hidden border border-slate-700'>
       {/* Desktop Table View */}
@@ -37,6 +38,13 @@ export const TaskTable = ({ tasks, onEdit, onDelete }: TaskTableProps) => {
                     onDelete={onDelete}
                   />
                 ))
+              ) : isLoading ? (
+                <tr>
+                  <td colSpan={7} className='px-6 py-8 text-center text-slate-400'>
+                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mr-2"></div>
+                    Loading tasks...
+                  </td>
+                </tr>
               ) : (
                 <tr>
                   <td colSpan={7} className='px-6 py-8 text-center text-slate-400'>
@@ -52,7 +60,12 @@ export const TaskTable = ({ tasks, onEdit, onDelete }: TaskTableProps) => {
       {/* Mobile Card View */}
       <div className='md:hidden'>
         <div className='p-4'>
-          {tasks?.length > 0 ? (
+          {isLoading ? (
+            <div className='text-center py-8 text-slate-400'>
+              <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mr-2"></div>
+              Loading tasks...
+            </div>
+          ) : tasks?.length > 0 ? (
             tasks?.map((task, index) => (
               <TaskCard
                 key={task?._id || index}

@@ -5,3 +5,4 @@ export { TaskCard } from './TaskCard';
 export { TaskForm } from './TaskForm';
 export { AddTaskModal } from './AddTaskModal';
 export { EditTaskModal } from './EditTaskModal';
+export { Pagination } from './Pagination';

@@ -2,7 +2,7 @@ import { isAuthenticated } from "@/app/lib/auth";
 import db from "@/app/lib/dbConnect";
 import Task from "@/app/models/taskModel";
 
-export async function GET() {
+export async function GET(request: Request) {
     await db();
     const isAuth = await isAuthenticated();
     if (!isAuth.isAuth) {
@@ -11,8 +11,38 @@ export async function GET() {
             { status: 401 }
         );
     }
-    const tasks = await Task.find({ userId: (isAuth.user as any).userId });
-    return Response.json(tasks);
+
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get('page') || '1');
+    const limit = parseInt(url.searchParams.get('limit') || '10');
+    const skip = (page - 1) * limit;
+
+    try {
+        const totalTasks = await Task.countDocuments({ userId: (isAuth.user as any).userId });
+        const tasks = await Task.find({ userId: (isAuth.user as any).userId })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const totalPages = Math.ceil(totalTasks / limit);
+
+        return Response.json({
+            tasks,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalTasks,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+                limit
+            }
+        });
+    } catch (error: any) {
+        return Response.json(
+            { error: error.message || "Failed to fetch tasks" },
+            { status: 500 }
+        );
+    }
 }
 
 export async function POST(request: Request) {

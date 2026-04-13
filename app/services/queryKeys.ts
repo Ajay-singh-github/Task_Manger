@@ -1,5 +1,7 @@
 export const queryKeys = {
   tasks: ['tasks'] as const,
+  tasksPaginated: (page: number, limit: number) => ['tasks', 'paginated', page, limit] as const,
+  tasksInfinite: (page: number, limit: number) => ['tasks', 'infinite', page, limit] as const,
   task: (id: string) => ['tasks', id] as const,
 } as const;
 

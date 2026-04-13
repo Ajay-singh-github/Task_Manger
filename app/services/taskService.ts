@@ -2,8 +2,20 @@ import { Task, TaskFormData } from '../hooks/useTasks';
 
 const API_BASE_URL = '/api';
 
+export interface PaginationResponse {
+  tasks: Task[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalTasks: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+    limit: number;
+  };
+}
+
 export const taskService = {
-  // Get all tasks
+  // Get all tasks (legacy method for backward compatibility)
   async getTasks(): Promise<Task[]> {
     const res = await fetch(`${API_BASE_URL}/tasks`);
     if (res.status === 401) {
@@ -13,6 +25,23 @@ export const taskService = {
       throw new Error('Failed to fetch tasks');
     }
     return res.json();
+  },
+
+  // Get paginated tasks
+  async getTasksPaginated(page: number = 1, limit: number = 10): Promise<PaginationResponse> {
+    const res = await fetch(`${API_BASE_URL}/tasks?page=${page}&limit=${limit}`);
+    if (res.status === 401) {
+      throw new Error('Unauthorized');
+    }
+    if (!res.ok) {
+      throw new Error('Failed to fetch tasks');
+    }
+    return res.json();
+  },
+
+  // Get tasks for infinite scroll (append mode)
+  async getTasksInfinite(page: number = 1, limit: number = 10): Promise<PaginationResponse> {
+    return this.getTasksPaginated(page, limit);
   },
 
   // Create a new task
