@@ -1,3 +1,4 @@
+import { isAuthenticated } from "@/app/lib/auth";
 import db from "@/app/lib/dbConnect";
 import User from "@/app/models/userModel";
 import bcrypt from "bcrypt";
@@ -8,6 +9,13 @@ db().catch((error) => {
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     await db();
+    const isAuth = await isAuthenticated();
+    if (!isAuth.isAuth) {
+        return new Response(
+            JSON.stringify({ error: "Unauthorized" }),
+            { status: 401 }
+        );
+    }
     const { id } = await params;
     const user = await User.findById(id).select('-password');
 
@@ -20,6 +28,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         await db();
+        const isAuth = await isAuthenticated();
+        if (!isAuth.isAuth) {
+            return new Response(
+                JSON.stringify({ error: "Unauthorized" }),
+                { status: 401 }
+            );
+        }
         const { id } = await params;
         const data = await request.json();
         const updateData: Record<string, any> = {
@@ -51,7 +66,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
     await db();
+    const isAuth = await isAuthenticated();
+    if (!isAuth.isAuth) {
+        return new Response(
+            JSON.stringify({ error: "Unauthorized" }),
+            { status: 401 }
+        );
+    }
     const { id } = await params;
+    
     const deletedUser = await User.findByIdAndDelete({ _id: id });
 
     if (!deletedUser) {

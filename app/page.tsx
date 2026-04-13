@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { TrashIcon, PencilIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation';
 
 interface Item {
   _id: string;
@@ -12,6 +13,7 @@ interface Item {
 }
 
 export default function Page() {
+  const router = useRouter();
   const [items, setItems] = useState<Item[]>([]);
 
   const [showAddModal, setShowAddModal] = useState(false);
@@ -57,8 +59,6 @@ export default function Page() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-
-      const data = await res.json();
 
       if (res.ok) {
         fetchUsers()
@@ -114,7 +114,16 @@ export default function Page() {
 
   const fetchUsers = async () => {
     const res = await fetch("/api/users");
+    if(res.status === 401) {
+      router.replace('/login');
+    }
+    console.log('Fetch users response:', res);
     setItems(res.ok ? await res.json() : []);
+  };
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.replace('/login');
   };
 
   useEffect(() => {

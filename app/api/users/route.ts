@@ -1,14 +1,17 @@
+import { isAuthenticated } from "@/app/lib/auth";
 import db from "@/app/lib/dbConnect";
 import User from "@/app/models/userModel";
 import bcrypt from "bcrypt";
 
-db().catch((error) => {
-    console.error("❌ MongoDB Connection Error:", error);
-});
-
-
 export async function GET() {
     await db();
+    const isAuth = await isAuthenticated();
+    if (!isAuth.isAuth) {
+        return new Response(
+            JSON.stringify({ error: "Unauthorized" }),
+            { status: 401 }
+        );
+    }
     const users = await User.find().select('-password');
     return Response.json(users);
 }
@@ -16,8 +19,14 @@ export async function GET() {
 export async function POST(request: Request) {
     try {
         await db();
+        const isAuth = await isAuthenticated();
+        if (!isAuth.isAuth) {
+            return new Response(
+                JSON.stringify({ error: "Unauthorized" }),
+                { status: 401 }
+            );
+        }
         const data = await request.json();
-
         // Normalize status to lowercase
         const normalizedData = {
             ...data,
