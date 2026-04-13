@@ -42,7 +42,6 @@ A modern, responsive task management application built with Next.js 16, featurin
 - **MongoDB** - NoSQL database
 - **Mongoose** - MongoDB object modeling
 - **JWT** - JSON Web Token authentication
-- **bcryptjs** - Password hashing
 
 ### AI Integration
 
