@@ -1,6 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
@@ -8,15 +6,11 @@ export async function POST(req: Request) {
 
     // validation
     if (!title || !about) {
-      return Response.json(
+      return NextResponse.json(
         { error: "Title and About are required" },
         { status: 400 }
       );
     }
-
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
-    });
 
     const prompt = `
       Task Title: ${title}
@@ -25,18 +19,42 @@ export async function POST(req: Request) {
       Write a short, clear and meaningful task description in one sentence.
     `;
 
-    const result = await model.generateContent(prompt);
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile", // best free model
+        messages: [
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+      }),
+    });
 
-    const response = await result.response;
-    const text = response.text();
+    const data = await response.json();
 
-    return Response.json({
+    if (!response.ok) {
+      console.error(data);
+      return NextResponse.json(
+        { error: "Groq API Error" },
+        { status: 500 }
+      );
+    }
+
+    const text = data.choices?.[0]?.message?.content;
+
+    return NextResponse.json({
       description: text,
     });
 
   } catch (error) {
     console.error(error);
-    return Response.json(
+    return NextResponse.json(
       { error: "Something went wrong" },
       { status: 500 }
     );

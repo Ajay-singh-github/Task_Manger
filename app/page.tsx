@@ -23,6 +23,7 @@ export default function Page() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(false);
+  const [generatingDescription, setGeneratingDescription] = useState(false);
   const [formData, setFormData] = useState({ title: '', about: '', description: '', status: 'pending', priority: 'medium' });
 
   const handleAddClick = () => {
@@ -112,6 +113,37 @@ export default function Page() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleGenerateDescription = async () => {
+    if (generatingDescription) return;
+    if (!formData.title || !formData.about) {
+      alert('Please enter Title and About first');
+      return;
+    }
+
+    setGeneratingDescription(true);
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: formData.title, about: formData.about }),
+      });
+
+      console.log('AI generation response:', res);
+      const data = await res.json();
+      if (res.ok && data.description) {
+        setFormData(prev => ({ ...prev, description: data.description }));
+      } else {
+        console.error('AI description generation failed:', data);
+        alert(data.error || 'Unable to generate description');
+      }
+    } catch (error) {
+      console.error('Error generating description:', error);
+      alert('Something went wrong generating the description');
+    } finally {
+      setGeneratingDescription(false);
+    }
+  };
+
   const fetchTasks = async () => {
     const res = await fetch("/api/tasks");
     if (res.status === 401) {
@@ -193,20 +225,20 @@ export default function Page() {
                       </td>
                       <td className='px-6 py-4 text-sm'>
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${item.status === 'completed'
-                            ? 'bg-green-900 text-green-200'
-                            : item.status === 'in-progress'
-                              ? 'bg-blue-900 text-blue-200'
-                              : 'bg-yellow-900 text-yellow-200'
+                          ? 'bg-green-900 text-green-200'
+                          : item.status === 'in-progress'
+                            ? 'bg-blue-900 text-blue-200'
+                            : 'bg-yellow-900 text-yellow-200'
                           }`}>
                           {item.status.charAt(0).toUpperCase() + item.status.slice(1).replace('-', ' ')}
                         </span>
                       </td>
                       <td className='px-6 py-4 text-sm'>
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${item.priority === 'high'
-                            ? 'bg-red-900 text-red-200'
-                            : item.priority === 'medium'
-                              ? 'bg-orange-900 text-orange-200'
-                              : 'bg-gray-900 text-gray-200'
+                          ? 'bg-red-900 text-red-200'
+                          : item.priority === 'medium'
+                            ? 'bg-orange-900 text-orange-200'
+                            : 'bg-gray-900 text-gray-200'
                           }`}>
                           {item.priority.charAt(0).toUpperCase() + item.priority.slice(1)}
                         </span>
@@ -288,7 +320,17 @@ export default function Page() {
                 </div>
 
                 <div className='mb-4'>
-                  <label className='block text-sm font-medium text-white mb-2'>Description</label>
+                  <div className='flex items-center justify-between gap-3 mb-2'>
+                    <label className='block text-sm font-medium text-white'>Description</label>
+                    <button
+                      type='button'
+                      onClick={handleGenerateDescription}
+                      disabled={generatingDescription || !formData.title || !formData.about}
+                      className='text-xs px-3 py-1 border border-slate-600 rounded-lg text-white bg-slate-700 hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-50 transition'
+                    >
+                      {generatingDescription ? 'Generating...' : 'Generate Description AI'}
+                    </button>
+                  </div>
                   <input
                     type='text'
                     name='description'
@@ -391,7 +433,17 @@ export default function Page() {
                 </div>
 
                 <div className='mb-4'>
-                  <label className='block text-sm font-medium text-white mb-2'>Description</label>
+                  <div className='flex items-center justify-between gap-3 mb-2'>
+                    <label className='block text-sm font-medium text-white'>Description</label>
+                    <button
+                      type='button'
+                      onClick={handleGenerateDescription}
+                      disabled={generatingDescription || !formData.title || !formData.about}
+                      className='text-xs px-3 py-1 border border-slate-600 rounded-lg text-white bg-slate-700 hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-50 transition'
+                    >
+                      {generatingDescription ? 'Generating...' : 'Generate Description AI'}
+                    </button>
+                  </div>
                   <input
                     type='text'
                     name='description'
