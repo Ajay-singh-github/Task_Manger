@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Task } from './hooks';
-import { Header, TaskTable, AddTaskModal, EditTaskModal, Pagination } from './components';
+import { Header, TaskTable, AddTaskModal, EditTaskModal, Pagination, NotificationContainer } from './components';
 import { useTasksPaginated } from './hooks/useTasksPaginated';
 import { useInfiniteScroll } from './hooks/useInfiniteScroll';
+import { useNotifications } from './hooks/useNotifications';
 
 export default function Page() {
   const router = useRouter();
+  const { notifications, addNotification, removeNotification, success, error } = useNotifications();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Task | null>(null);
@@ -63,13 +65,14 @@ export default function Page() {
       });
 
       if (response.ok) {
-        router.push('/login');
+        success('Logged out successfully', 'You have been logged out of your account');
+        setTimeout(() => router.push('/login'), 1000);
       } else {
-        alert('Failed to logout');
+        error('Logout failed', 'Unable to logout. Please try again.');
       }
-    } catch (error) {
-      console.error('Logout error:', error);
-      alert('Error during logout');
+    } catch (err) {
+      console.error('Logout error:', err);
+      error('Logout error', 'An error occurred during logout');
     }
   };
 
@@ -86,9 +89,10 @@ export default function Page() {
     if (confirm('Are you sure you want to delete this task?')) {
       try {
         await deleteTask(id);
-      } catch (error) {
-        console.error('Failed to delete task:', error);
-        alert('Failed to delete task');
+        success('Task deleted', 'The task has been successfully deleted');
+      } catch (err) {
+        console.error('Failed to delete task:', err);
+        error('Delete failed', 'Unable to delete the task. Please try again.');
       }
     }
   };
@@ -96,10 +100,11 @@ export default function Page() {
   const handleAddSubmit = async (taskData: any) => {
     try {
       await createTask(taskData);
+      success('Task created', 'Your new task has been added successfully');
       return true;
-    } catch (error) {
-      console.error('Failed to create task:', error);
-      alert('Failed to create task');
+    } catch (err) {
+      console.error('Failed to create task:', err);
+      error('Creation failed', 'Unable to create the task. Please check your input and try again.');
       return false;
     }
   };
@@ -107,10 +112,11 @@ export default function Page() {
   const handleEditSubmit = async (id: string, taskData: any) => {
     try {
       await updateTask({ id, data: taskData });
+      success('Task updated', 'Your task has been updated successfully');
       return true;
-    } catch (error) {
-      console.error('Failed to update task:', error);
-      alert('Failed to update task');
+    } catch (err) {
+      console.error('Failed to update task:', err);
+      error('Update failed', 'Unable to update the task. Please try again.');
       return false;
     }
   };
@@ -169,6 +175,12 @@ export default function Page() {
           task={editingItem}
           onClose={handleCloseEditModal}
           onSubmit={handleEditSubmit}
+        />
+
+        {/* Notification Container */}
+        <NotificationContainer
+          notifications={notifications}
+          onRemove={removeNotification}
         />
       </div>
     </div>

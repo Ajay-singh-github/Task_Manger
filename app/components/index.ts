@@ -6,3 +6,5 @@ export { TaskForm } from './TaskForm';
 export { AddTaskModal } from './AddTaskModal';
 export { EditTaskModal } from './EditTaskModal';
 export { Pagination } from './Pagination';
+export { ErrorBoundary } from './ErrorBoundary';
+export { NotificationContainer } from './NotificationContainer';

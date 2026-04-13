@@ -1,6 +1,7 @@
 // @ts-ignore
 import './ui/global.css';
 import { Providers } from './providers';
+import ErrorBoundary from './components/ErrorBoundary';
 
 export default function RootLayout({
   children,
@@ -10,7 +11,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers>{children}</Providers>
+        <ErrorBoundary>
+          <Providers>{children}</Providers>
+        </ErrorBoundary>
       </body>
     </html>
   );
