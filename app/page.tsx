@@ -331,13 +331,13 @@ export default function Page() {
                       {generatingDescription ? 'Generating...' : 'Generate Description AI'}
                     </button>
                   </div>
-                  <input
-                    type='text'
+                  <textarea
                     name='description'
                     value={formData.description}
                     onChange={handleInputChange}
                     required
-                    className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
+                    rows={4}
+                    className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition resize-none'
                     placeholder='Enter detailed description'
                   />
                 </div>
@@ -444,13 +444,13 @@ export default function Page() {
                       {generatingDescription ? 'Generating...' : 'Generate Description AI'}
                     </button>
                   </div>
-                  <input
-                    type='text'
+                  <textarea
                     name='description'
                     value={formData.description}
                     onChange={handleInputChange}
                     required
-                    className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
+                    rows={4}
+                    className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition resize-none'
                     placeholder='Enter detailed description'
                   />
                 </div>
