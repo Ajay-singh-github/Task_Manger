@@ -28,7 +28,7 @@ export async function POST(request: Request) {
         }
         const data = await request.json();
      
-
+        console.log("Received task data:", data);
         const user = new User(data);
         const savedUser = await user.save();
         const savedUserObj = savedUser.toObject();

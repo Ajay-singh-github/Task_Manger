@@ -39,12 +39,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         const data = await request.json();
         const updateData: Record<string, any> = {
             name: data.name,
-            email: data.email,
-            status: data.status?.toLowerCase(),
+            about: data.about,
+            description: data.description,            
         };
-        if (data.password?.trim()) {
-            updateData.password = await bcrypt.hash(data.password, 10);
-        }
         const updatedUser = await User.findByIdAndUpdate(id, updateData, {
             new: true,
             runValidators: true,

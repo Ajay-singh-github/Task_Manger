@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react';
 import { TrashIcon, PencilIcon, PlusIcon, XMarkIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
+import { formatDate } from './lib/customMethod';
 
 interface Item {
   _id: string;
   name: string;
   about: string;
-  status: string;
-  password?: string;
+  description: string;
+  updatedAt: Date;
 }
 
 export default function Page() {
@@ -20,16 +21,16 @@ export default function Page() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({ name: '', about: '', status: 'active', password: '' });
+  const [formData, setFormData] = useState({ name: '', about: '', description: '' });
 
   const handleAddClick = () => {
-    setFormData({ name: '', about: '', status: 'active', password: '' });
+    setFormData({ name: '', about: '', description: ''});
     setShowAddModal(true);
   };
 
   const handleEditClick = (item: Item) => {
     setEditingItem(item);
-    setFormData({ name: item.name, about: item.about, status: item.status, password: '' });
+    setFormData({ name: item.name, about: item.about, description: item.description });
     setShowEditModal(true);
   };
 
@@ -79,12 +80,8 @@ export default function Page() {
       const updatePayload: Record<string, string> = {
         name: formData.name,
         about: formData.about,
-        status: formData.status,
+        description: formData.description,
       };
-
-      if (formData.password.trim()) {
-        updatePayload.password = formData.password;
-      }
 
       const res = await fetch(`/api/users/${editingItem._id}`, {
         method: 'PATCH',
@@ -103,7 +100,7 @@ export default function Page() {
     }
     setShowEditModal(false);
     setEditingItem(null);
-    setFormData({ name: '', about: '', status: 'active', password: '' });
+    setFormData({ name: '', about: '', description: '' });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -166,8 +163,8 @@ export default function Page() {
                 <tr className='bg-slate-700 border-b border-slate-600'>
                   <th className='px-6 py-4 text-left text-sm font-semibold text-white'>Name</th>
                   <th className='px-6 py-4 text-left text-sm font-semibold text-white'>About</th>
-                  <th className='px-6 py-4 text-left text-sm font-semibold text-white'>Status</th>
-                  <th className='px-6 py-4 text-left text-sm font-semibold text-white'>Password</th>
+                  <th className='px-6 py-4 text-left text-sm font-semibold text-white'>Description</th>
+                  <th className='px-6 py-4 text-left text-sm font-semibold text-white'>Date</th>
                   <th className='px-6 py-4 text-center text-sm font-semibold text-white'>Actions</th>
                 </tr>
               </thead>
@@ -185,18 +182,11 @@ export default function Page() {
                       <td className='px-6 py-4 text-sm text-slate-300'>
                         {item.about}
                       </td>
-                      <td className='px-6 py-4 text-sm'>
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${item.status === 'active'
-                            ? 'bg-green-900 text-green-200'
-                            : 'bg-red-900 text-red-200'
-                            }`}
-                        >
-                          {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
-                        </span>
+                      <td className='px-6 py-4 text-sm text-slate-300'>
+                        {item.description}
                       </td>
                       <td className='px-6 py-4 text-sm text-slate-300'>
-                        **********
+                        {item?.updatedAt ? formatDate(item.updatedAt) : 'N/A'}
                       </td>
                       <td className='px-6 py-4 text-center'>
                         <div className='flex justify-center gap-2'>
@@ -271,29 +261,17 @@ export default function Page() {
                   />
                 </div>
 
-                <div className='mb-4'>
-                  <label className='block text-sm font-medium text-white mb-2'>Status</label>
-                  <select
-                    name='status'
-                    value={formData.status}
-                    onChange={handleInputChange}
-                    className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
-                  >
-                    <option value='active'>Active</option>
-                    <option value='inactive'>Inactive</option>
-                  </select>
-                </div>
-
-                <div className='mb-6'>
-                  <label className='block text-sm font-medium text-white mb-2'>Password</label>
+                <div className='mb-8'>
+                  <label className='block text-sm font-medium text-white mb-2'>Description</label>
                   <input
-                    type='password'
-                    name='password'
-                    value={formData.password}
+                    type='text'
+                    name='description'
+                    value={formData.description}
                     onChange={handleInputChange}
                     required
                     className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
-                  />
+                  >
+                  </input>
                 </div>
 
                 <div className='flex gap-3'>
@@ -302,7 +280,7 @@ export default function Page() {
                     disabled={loading}
                     className='flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200'
                   >
-                    {loading ? "Adding..." : "Add Item"}
+                    {loading ? "Adding..." : "Add Task"}
                   </button>
                   <button
                     type='button'
@@ -322,7 +300,7 @@ export default function Page() {
           <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
             <div className='bg-slate-800 rounded-lg shadow-2xl p-8 w-full max-w-md border border-slate-700'>
               <div className='flex justify-between items-center mb-6'>
-                <h2 className='text-2xl font-bold text-white'>Edit Item</h2>
+                <h2 className='text-2xl font-bold text-white'>Edit Task</h2>
                 <button
                   onClick={() => setShowEditModal(false)}
                   className='text-slate-400 hover:text-white transition'
@@ -358,28 +336,16 @@ export default function Page() {
                   />
                 </div>
 
-                <div className='mb-4'>
-                  <label className='block text-sm font-medium text-white mb-2'>Status</label>
-                  <select
-                    name='status'
-                    value={formData.status}
+                <div className='mb-8'>
+                  <label className='block text-sm font-medium text-white mb-2'>Description</label>
+                  <input
+                    type='text'
+                    name='description'
+                    value={formData.description}
                     onChange={handleInputChange}
                     className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
                   >
-                    <option value='active'>Active</option>
-                    <option value='inactive'>Inactive</option>
-                  </select>
-                </div>
-
-                <div className='mb-6'>
-                  <label className='block text-sm font-medium text-white mb-2'>Password</label>
-                  <input
-                    type='password'
-                    name='password'
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
-                  />
+                  </input>
                 </div>
 
                 <div className='flex gap-3'>

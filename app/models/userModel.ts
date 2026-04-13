@@ -5,7 +5,7 @@ export interface IUser extends Document {
     name: string;
     about: string;
     password: string;
-    status: string;
+    description: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -23,14 +23,9 @@ const userSchema = new Schema<IUser>(
             required: [true, "About is required"],
             trim: true,
         },
-        status: {
+        description: {
             type: String,
-            default: "active",
-        },
-        password: {
-            type: String,
-            required: [true, "Password is required"],
-            minlength: 6,
+            trim: true,
         },
     },
     {
