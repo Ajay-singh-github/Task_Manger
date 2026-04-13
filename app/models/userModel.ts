@@ -6,6 +6,7 @@ export interface IUser extends Document {
     about: string;
     password: string;
     description: string;
+    userId: mongoose.Schema.Types.ObjectId;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -26,6 +27,11 @@ const userSchema = new Schema<IUser>(
         description: {
             type: String,
             trim: true,
+        },
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "UserAuth",
+            required: true,
         },
     },
     {

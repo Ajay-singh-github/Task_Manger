@@ -12,7 +12,7 @@ export async function GET() {
             { status: 401 }
         );
     }
-    const users = await User.find().select('-password');
+    const users = await User.find({ userId: (isAuth.user as any).userId }).select('-password');
     return Response.json(users);
 }
 
@@ -27,9 +27,8 @@ export async function POST(request: Request) {
             );
         }
         const data = await request.json();
-     
-        console.log("Received task data:", data);
-        const user = new User(data);
+
+        const user = new User({ ...data, userId: (isAuth.user as any).userId });
         const savedUser = await user.save();
         const savedUserObj = savedUser.toObject();
         delete savedUserObj.password;

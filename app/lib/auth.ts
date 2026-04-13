@@ -1,6 +1,11 @@
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 
+interface MyJwtPayload {
+  userId: string;
+  email?: string;
+}
+
 export async function isAuthenticated() {
     try {
         const cookieStore = await cookies();
@@ -8,7 +13,7 @@ export async function isAuthenticated() {
 
         if (!token) return { isAuth: false };
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as MyJwtPayload;
 
         return { isAuth: true, user: decoded };
 
