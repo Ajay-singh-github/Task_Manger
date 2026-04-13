@@ -48,7 +48,7 @@ export default function LoginPage() {
                 <div className='bg-slate-800 rounded-lg shadow-2xl p-8 border border-slate-700'>
                     {/* Header */}
                     <div className='text-center mb-8'>
-                        <h1 className='text-4xl font-bold text-white mb-2'>TUDO</h1>
+                        <h1 className='text-4xl font-bold text-white mb-2'>Task Manger</h1>
                         <p className='text-slate-400'>Welcome back to your dashboard</p>
                     </div>
 
@@ -96,11 +96,11 @@ export default function LoginPage() {
                         </div>
 
                         {/* Forgot Password Link */}
-                        <div className='text-right'>
+                        {/* <div className='text-right'>
                             <Link href='/forgot-password' className='text-sm text-blue-400 hover:text-blue-300 transition'>
                                 Forgot password?
                             </Link>
-                        </div>
+                        </div> */}
 
                         {/* Submit Button */}
                         <button
