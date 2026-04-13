@@ -10,6 +10,7 @@ export interface Task {
   description: string;
   status: string;
   priority: string;
+  createdAt: Date;
   updatedAt: Date;
 }
 
@@ -34,11 +35,6 @@ export const useTasks = () => {
   } = useQuery({
     queryKey: queryKeys.tasks,
     queryFn: taskService.getTasks,
-    onError: (error) => {
-      if (error instanceof Error && error.message === 'Unauthorized') {
-        router.replace('/login');
-      }
-    },
   });
 
   // Mutation for creating tasks
@@ -53,7 +49,6 @@ export const useTasks = () => {
 
   // Mutation for updating tasks
   const updateTaskMutation = useMutation({
-    mutationKey: (id: string) => mutationKeys.updateTask(id),
     mutationFn: ({ id, data }: { id: string; data: TaskFormData }) =>
       taskService.updateTask(id, data),
     onSuccess: () => {
@@ -64,7 +59,6 @@ export const useTasks = () => {
 
   // Mutation for deleting tasks
   const deleteTaskMutation = useMutation({
-    mutationKey: (id: string) => mutationKeys.deleteTask(id),
     mutationFn: taskService.deleteTask,
     onSuccess: () => {
       // Invalidate and refetch tasks

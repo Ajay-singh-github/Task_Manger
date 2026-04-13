@@ -3,8 +3,9 @@ import UserAuth from "@/app/models/userauthModal";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { NextRequest } from "next/server";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
         await db();
 

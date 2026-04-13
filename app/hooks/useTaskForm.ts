@@ -15,7 +15,6 @@ export const useTaskForm = (initialData?: Partial<TaskFormData>) => {
 
   // Mutation for generating AI description
   const generateDescriptionMutation = useMutation({
-    mutationKey: mutationKeys.generateDescription,
     mutationFn: ({ title, about }: { title: string; about: string }) =>
       taskService.generateDescription(title, about),
     onSuccess: (description) => {

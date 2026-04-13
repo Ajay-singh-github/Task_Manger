@@ -1,8 +1,9 @@
 import db from "@/app/lib/dbConnect";
 import UserAuth from "@/app/models/userauthModal";
 import bcrypt from "bcrypt";
+import { NextRequest } from "next/server";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
         // 1. Connect DB
         await db();

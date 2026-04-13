@@ -1,12 +1,13 @@
 import { isAuthenticated } from "@/app/lib/auth";
 import db from "@/app/lib/dbConnect";
 import Task from "@/app/models/taskModel";
+import { NextRequest } from "next/server";
 
 db().catch((error) => {
     console.error("❌ MongoDB Connection Error:", error);
 });
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     await db();
     const isAuth = await isAuthenticated();
     if (!isAuth.isAuth) {
@@ -24,7 +25,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     return Response.json(task);
 }
 
-export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await db();
         const isAuth = await isAuthenticated();
@@ -62,7 +63,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     await db();
     const isAuth = await isAuthenticated();
     if (!isAuth.isAuth) {

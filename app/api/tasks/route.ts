@@ -1,8 +1,9 @@
 import { isAuthenticated } from "@/app/lib/auth";
 import db from "@/app/lib/dbConnect";
 import Task from "@/app/models/taskModel";
+import { NextRequest } from "next/server";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
     await db();
     const isAuth = await isAuthenticated();
     if (!isAuth.isAuth) {
@@ -45,7 +46,7 @@ export async function GET(request: Request) {
     }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
         await db();
         const isAuth = await isAuthenticated();

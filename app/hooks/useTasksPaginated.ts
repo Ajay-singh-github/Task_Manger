@@ -28,6 +28,7 @@ export const useTasksPaginated = (options: UseTasksPaginatedOptions = { mode: 'p
   const infiniteQuery = useInfiniteQuery({
     queryKey: queryKeys.tasksInfinite(1, pageSize),
     queryFn: ({ pageParam = 1 }) => taskService.getTasksInfinite(pageParam, pageSize),
+    initialPageParam: 1,
     enabled: enabled && mode === 'infinite',
     staleTime: 1000 * 60,
     gcTime: 1000 * 60 * 10,
@@ -52,7 +53,6 @@ export const useTasksPaginated = (options: UseTasksPaginatedOptions = { mode: 'p
 
   // Create task mutation
   const createMutation = useMutation({
-    mutationKey: mutationKeys.createTask,
     mutationFn: taskService.createTask,
     onSuccess: () => {
       // Invalidate and refetch
@@ -69,7 +69,6 @@ export const useTasksPaginated = (options: UseTasksPaginatedOptions = { mode: 'p
 
   // Update task mutation
   const updateMutation = useMutation({
-    mutationKey: mutationKeys.updateTask,
     mutationFn: ({ id, data }: { id: string; data: TaskFormData }) =>
       taskService.updateTask(id, data),
     onSuccess: () => {
@@ -81,7 +80,6 @@ export const useTasksPaginated = (options: UseTasksPaginatedOptions = { mode: 'p
 
   // Delete task mutation
   const deleteMutation = useMutation({
-    mutationKey: mutationKeys.deleteTask,
     mutationFn: taskService.deleteTask,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks });
