@@ -27,15 +27,15 @@ export const TaskForm = ({
   submitButtonColor,
 }: TaskFormProps) => {
   return (
-    <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
-      <div className='bg-slate-800 rounded-lg shadow-2xl p-8 w-full max-w-md border border-slate-700'>
-        <div className='flex justify-between items-center mb-6'>
-          <h2 className='text-2xl font-bold text-white'>{title}</h2>
+    <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4'>
+      <div className='bg-slate-800 rounded-lg shadow-2xl p-4 sm:p-6 lg:p-8 w-full max-w-md border border-slate-700 max-h-[90vh] overflow-y-auto'>
+        <div className='flex justify-between items-center mb-4 sm:mb-6'>
+          <h2 className='text-xl sm:text-2xl font-bold text-white'>{title}</h2>
           <button
             onClick={onCancel}
             className='text-slate-400 hover:text-white transition'
           >
-            <XMarkIcon className='w-6 h-6' />
+            <XMarkIcon className='w-5 h-5 sm:w-6 sm:h-6' />
           </button>
         </div>
 
