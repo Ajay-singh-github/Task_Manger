@@ -32,6 +32,7 @@ export default function Page() {
     tasks,
     pagination,
     isLoading,
+    error: queryError,
     currentPage,
     goToPage,
     nextPage,
@@ -49,6 +50,13 @@ export default function Page() {
     mode: isMobile ? 'infinite' : 'pagination',
     pageSize: isMobile ? 8 : 10, // Smaller pages for mobile infinite scroll
   });
+
+  // Redirect to login on unauthorized error
+  useEffect(() => {
+    if (queryError?.message === 'Unauthorized') {
+      router.push('/login');
+    }
+  }, [queryError, router]);
 
   // Infinite scroll for mobile
   useInfiniteScroll({

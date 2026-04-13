@@ -52,6 +52,9 @@ export const taskService = {
       body: JSON.stringify(taskData),
     });
 
+    if (res.status === 401) {
+      throw new Error('Unauthorized');
+    }
     if (!res.ok) {
       throw new Error('Failed to create task');
     }
@@ -67,6 +70,9 @@ export const taskService = {
       body: JSON.stringify(taskData),
     });
 
+    if (res.status === 401) {
+      throw new Error('Unauthorized');
+    }
     if (!res.ok) {
       throw new Error('Failed to update task');
     }
@@ -80,6 +86,9 @@ export const taskService = {
       method: 'DELETE',
     });
 
+    if (res.status === 401) {
+      throw new Error('Unauthorized');
+    }
     if (!res.ok) {
       throw new Error('Failed to delete task');
     }

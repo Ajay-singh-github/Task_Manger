@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { Task, TaskFormData } from './useTasks';
 import { taskService, PaginationResponse } from '../services/taskService';
 import { queryKeys, mutationKeys } from '../services/queryKeys';
@@ -14,6 +15,7 @@ export const useTasksPaginated = (options: UseTasksPaginatedOptions = { mode: 'p
   const { mode, pageSize = 10, enabled = true } = options;
   const [currentPage, setCurrentPage] = useState(1);
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   // Pagination query for desktop
   const paginationQuery = useQuery({
@@ -65,6 +67,11 @@ export const useTasksPaginated = (options: UseTasksPaginatedOptions = { mode: 'p
         setCurrentPage(1);
       }
     },
+    onError: (error) => {
+      if (error.message === 'Unauthorized') {
+        router.push('/login');
+      }
+    },
   });
 
   // Update task mutation
@@ -76,6 +83,11 @@ export const useTasksPaginated = (options: UseTasksPaginatedOptions = { mode: 'p
       queryClient.invalidateQueries({ queryKey: ['tasks', 'paginated'] });
       queryClient.invalidateQueries({ queryKey: ['tasks', 'infinite'] });
     },
+    onError: (error) => {
+      if (error.message === 'Unauthorized') {
+        router.push('/login');
+      }
+    },
   });
 
   // Delete task mutation
@@ -85,6 +97,11 @@ export const useTasksPaginated = (options: UseTasksPaginatedOptions = { mode: 'p
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks });
       queryClient.invalidateQueries({ queryKey: ['tasks', 'paginated'] });
       queryClient.invalidateQueries({ queryKey: ['tasks', 'infinite'] });
+    },
+    onError: (error) => {
+      if (error.message === 'Unauthorized') {
+        router.push('/login');
+      }
     },
   });
 

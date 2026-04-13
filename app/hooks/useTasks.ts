@@ -39,11 +39,15 @@ export const useTasks = () => {
 
   // Mutation for creating tasks
   const createTaskMutation = useMutation({
-    mutationKey: mutationKeys.createTask,
     mutationFn: taskService.createTask,
     onSuccess: () => {
       // Invalidate and refetch tasks
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks });
+    },
+    onError: (error) => {
+      if (error.message === 'Unauthorized') {
+        router.push('/login');
+      }
     },
   });
 
@@ -55,6 +59,11 @@ export const useTasks = () => {
       // Invalidate and refetch tasks
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks });
     },
+    onError: (error) => {
+      if (error.message === 'Unauthorized') {
+        router.push('/login');
+      }
+    },
   });
 
   // Mutation for deleting tasks
@@ -63,6 +72,11 @@ export const useTasks = () => {
     onSuccess: () => {
       // Invalidate and refetch tasks
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks });
+    },
+    onError: (error) => {
+      if (error.message === 'Unauthorized') {
+        router.push('/login');
+      }
     },
   });
 
