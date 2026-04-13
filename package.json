@@ -9,6 +9,7 @@
     "@google/genai": "^1.49.0",
     "@heroicons/react": "^2.2.0",
     "@tailwindcss/forms": "^0.5.10",
+    "@tanstack/react-query": "^5.99.0",
     "autoprefixer": "10.4.20",
     "bcrypt": "^5.1.1",
     "clsx": "^2.1.1",
@@ -26,6 +27,7 @@
     "zod": "^3.25.17"
   },
   "devDependencies": {
+    "@tanstack/react-query-devtools": "^5.99.0",
     "@types/bcrypt": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "22.10.7",

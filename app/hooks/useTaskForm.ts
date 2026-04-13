@@ -1,5 +1,8 @@
 import { useState, useCallback } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { TaskFormData } from './useTasks';
+import { taskService } from '../services/taskService';
+import { mutationKeys } from '../services/queryKeys';
 
 export const useTaskForm = (initialData?: Partial<TaskFormData>) => {
   const [formData, setFormData] = useState<TaskFormData>({
@@ -10,7 +13,19 @@ export const useTaskForm = (initialData?: Partial<TaskFormData>) => {
     priority: initialData?.priority || 'medium',
   });
 
-  const [generatingDescription, setGeneratingDescription] = useState(false);
+  // Mutation for generating AI description
+  const generateDescriptionMutation = useMutation({
+    mutationKey: mutationKeys.generateDescription,
+    mutationFn: ({ title, about }: { title: string; about: string }) =>
+      taskService.generateDescription(title, about),
+    onSuccess: (description) => {
+      setFormData(prev => ({ ...prev, description }));
+    },
+    onError: (error) => {
+      console.error('AI description generation failed:', error);
+      alert('Unable to generate description');
+    },
+  });
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -31,43 +46,47 @@ export const useTaskForm = (initialData?: Partial<TaskFormData>) => {
     setFormData(task);
   }, []);
 
+  const handleSubmit = useCallback(async (onSuccess?: (task: TaskFormData) => void) => {
+    if (!formData.title || !formData.about) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      const task = await taskService.createTask(formData);
+      onSuccess?.(task);
+      resetForm();
+    } catch (error) {
+      console.error('Error creating task:', error);
+      alert('Failed to create task');
+    }
+  }, [formData, resetForm]);
+
   const handleGenerateDescription = useCallback(async () => {
-    if (generatingDescription) return;
+    if (generateDescriptionMutation.isPending) return;
     if (!formData.title || !formData.about) {
       alert('Please enter Title and About first');
       return;
     }
 
-    setGeneratingDescription(true);
     try {
-      const res = await fetch('/api/ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: formData.title, about: formData.about }),
+      await generateDescriptionMutation.mutateAsync({
+        title: formData.title,
+        about: formData.about,
       });
-
-      console.log('AI generation response:', res);
-      const data = await res.json();
-      if (res.ok && data.description) {
-        setFormData(prev => ({ ...prev, description: data.description }));
-      } else {
-        console.error('AI description generation failed:', data);
-        alert(data.error || 'Unable to generate description');
-      }
     } catch (error) {
       console.error('Error generating description:', error);
       alert('Something went wrong generating the description');
-    } finally {
-      setGeneratingDescription(false);
     }
-  }, [generatingDescription, formData.title, formData.about]);
+  }, [generateDescriptionMutation, formData.title, formData.about]);
 
   return {
     formData,
-    generatingDescription,
+    generatingDescription: generateDescriptionMutation.isPending,
     handleInputChange,
     resetForm,
     setFormDataFromTask,
     handleGenerateDescription,
+    handleSubmit,
   };
 };

@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { taskService } from '../services/taskService';
+import { queryKeys, mutationKeys } from '../services/queryKeys';
 
 export interface Task {
   _id: string;
@@ -21,56 +23,77 @@ export interface TaskFormData {
 
 export const useTasks = () => {
   const router = useRouter();
-  const [items, setItems] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
-  const fetchTasks = async () => {
-    const res = await fetch("/api/tasks");
-    if (res.status === 401) {
+  // Query for fetching tasks
+  const {
+    data: items = [],
+    isLoading: loading,
+    error,
+    refetch: fetchTasks,
+  } = useQuery({
+    queryKey: queryKeys.tasks,
+    queryFn: taskService.getTasks,
+    onError: (error) => {
+      if (error instanceof Error && error.message === 'Unauthorized') {
+        router.replace('/login');
+      }
+    },
+  });
+
+  // Mutation for creating tasks
+  const createTaskMutation = useMutation({
+    mutationKey: mutationKeys.createTask,
+    mutationFn: taskService.createTask,
+    onSuccess: () => {
+      // Invalidate and refetch tasks
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks });
+    },
+  });
+
+  // Mutation for updating tasks
+  const updateTaskMutation = useMutation({
+    mutationKey: (id: string) => mutationKeys.updateTask(id),
+    mutationFn: ({ id, data }: { id: string; data: TaskFormData }) =>
+      taskService.updateTask(id, data),
+    onSuccess: () => {
+      // Invalidate and refetch tasks
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks });
+    },
+  });
+
+  // Mutation for deleting tasks
+  const deleteTaskMutation = useMutation({
+    mutationKey: (id: string) => mutationKeys.deleteTask(id),
+    mutationFn: taskService.deleteTask,
+    onSuccess: () => {
+      // Invalidate and refetch tasks
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks });
+    },
+  });
+
+  // Mutation for logout
+  const logoutMutation = useMutation({
+    mutationFn: taskService.logout,
+    onSuccess: () => {
       router.replace('/login');
-      setItems([]);
-      return;
-    }
-    console.log('Fetch tasks response:', res);
-    setItems(res.ok ? await res.json() : []);
-  };
+    },
+  });
 
   const addTask = async (taskData: TaskFormData) => {
-    setLoading(true);
     try {
-      const res = await fetch("/api/tasks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(taskData),
-      });
-
-      if (res.ok) {
-        await fetchTasks();
-        return true;
-      }
-      return false;
+      await createTaskMutation.mutateAsync(taskData);
+      return true;
     } catch (error) {
-      console.error(error);
+      console.error('Error creating task:', error);
       return false;
-    } finally {
-      setLoading(false);
     }
   };
 
   const updateTask = async (id: string, taskData: TaskFormData) => {
     try {
-      const res = await fetch(`/api/tasks/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(taskData),
-      });
-
-      if (res.ok) {
-        const updatedTask = await res.json();
-        setItems(prev => prev.map(item => item._id === id ? updatedTask : item));
-        return true;
-      }
-      return false;
+      await updateTaskMutation.mutateAsync({ id, data: taskData });
+      return true;
     } catch (error) {
       console.error('Error updating task:', error);
       return false;
@@ -79,12 +102,8 @@ export const useTasks = () => {
 
   const deleteTask = async (id: string) => {
     try {
-      const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        setItems(prev => prev.filter(item => item._id !== id));
-        return true;
-      }
-      return false;
+      await deleteTaskMutation.mutateAsync(id);
+      return true;
     } catch (error) {
       console.error('Error deleting task:', error);
       return false;
@@ -92,17 +111,27 @@ export const useTasks = () => {
   };
 
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.replace('/login');
+    try {
+      await logoutMutation.mutateAsync();
+    } catch (error) {
+      console.error('Error logging out:', error);
+      // Still redirect even if logout fails
+      router.replace('/login');
+    }
   };
 
   return {
     items,
     loading,
+    error,
     fetchTasks,
     addTask,
     updateTask,
     deleteTask,
     handleLogout,
+    // Expose mutation states for loading indicators
+    isCreating: createTaskMutation.isPending,
+    isUpdating: updateTaskMutation.isPending,
+    isDeleting: deleteTaskMutation.isPending,
   };
 };
