@@ -1,22 +1,23 @@
 import mongoose, { Schema, Document, models, model } from "mongoose";
 
 // 👉 TypeScript interface (optional but recommended)
-export interface IUser extends Document {
-    name: string;
+export interface ITask extends Document {
+    title: string;
     about: string;
-    password: string;
     description: string;
+    status: string;
+    priority: string;
     userId: mongoose.Schema.Types.ObjectId;
     createdAt: Date;
     updatedAt: Date;
 }
 
 // 👉 Schema
-const userSchema = new Schema<IUser>(
+const taskSchema = new Schema<ITask>(
     {
-        name: {
+        title: {
             type: String,
-            required: [true, "Name is required"],
+            required: [true, "Title is required"],
             trim: true,
         },
         about: {
@@ -26,7 +27,18 @@ const userSchema = new Schema<IUser>(
         },
         description: {
             type: String,
+            required: [true, "Description is required"],
             trim: true,
+        },
+        status: {
+            type: String,
+            enum: ["pending", "in-progress", "completed"],
+            default: "pending",
+        },
+        priority: {
+            type: String,
+            enum: ["low", "medium", "high"],
+            default: "medium",
         },
         userId: {
             type: mongoose.Schema.Types.ObjectId,
@@ -40,6 +52,6 @@ const userSchema = new Schema<IUser>(
 );
 
 // 👉 Model (important for Next.js hot reload issue fix)
-const User = models.User || model<IUser>("User", userSchema);
+const Task = models.Task || model<ITask>("Task", taskSchema);
 
-export default User;
+export default Task;

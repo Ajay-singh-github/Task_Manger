@@ -1,7 +1,6 @@
 import { isAuthenticated } from "@/app/lib/auth";
 import db from "@/app/lib/dbConnect";
-import User from "@/app/models/userModel";
-import bcrypt from "bcrypt";
+import Task from "@/app/models/taskModel";
 
 export async function GET() {
     await db();
@@ -12,8 +11,8 @@ export async function GET() {
             { status: 401 }
         );
     }
-    const users = await User.find({ userId: (isAuth.user as any).userId }).select('-password');
-    return Response.json(users);
+    const tasks = await Task.find({ userId: (isAuth.user as any).userId });
+    return Response.json(tasks);
 }
 
 export async function POST(request: Request) {
@@ -28,18 +27,16 @@ export async function POST(request: Request) {
         }
         const data = await request.json();
 
-        const user = new User({ ...data, userId: (isAuth.user as any).userId });
-        const savedUser = await user.save();
-        const savedUserObj = savedUser.toObject();
-        delete savedUserObj.password;
+        const task = new Task({ ...data, userId: (isAuth.user as any).userId });
+        const savedTask = await task.save();
 
         return Response.json({
-            message: "User created successfully",
-            user: savedUserObj,
+            message: "Task created successfully",
+            task: savedTask,
         });
     } catch (error: any) {
         return Response.json(
-            { error: error.message || "Failed to create user" },
+            { error: error.message || "Failed to create task" },
             { status: 500 }
         );
     }

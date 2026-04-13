@@ -1,7 +1,6 @@
 import { isAuthenticated } from "@/app/lib/auth";
 import db from "@/app/lib/dbConnect";
-import User from "@/app/models/userModel";
-import bcrypt from "bcrypt";
+import Task from "@/app/models/taskModel";
 
 db().catch((error) => {
     console.error("❌ MongoDB Connection Error:", error);
@@ -17,12 +16,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         );
     }
     const { id } = await params;
-    const user = await User.findById(id).select('-password');
+    const task = await Task.findById(id);
 
-    if (!user) {
-        return Response.json({ error: 'User not found' }, { status: 404 });
+    if (!task) {
+        return Response.json({ error: 'Task not found' }, { status: 404 });
     }
-    return Response.json(user);
+    return Response.json(task);
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -38,24 +37,26 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         const { id } = await params;
         const data = await request.json();
         const updateData: Record<string, any> = {
-            name: data.name,
+            title: data.title,
             about: data.about,
-            description: data.description,            
+            description: data.description,
+            status: data.status,
+            priority: data.priority,
         };
-        const updatedUser = await User.findByIdAndUpdate(id, updateData, {
+        const updatedTask = await Task.findByIdAndUpdate(id, updateData, {
             new: true,
             runValidators: true,
-        }).select('-password');
+        });
 
-        if (!updatedUser) {
-            return Response.json({ error: 'User not found' }, { status: 404 });
+        if (!updatedTask) {
+            return Response.json({ error: 'Task not found' }, { status: 404 });
         }
 
-        return Response.json(updatedUser);
+        return Response.json(updatedTask);
     } catch (error: any) {
-        console.error('Error updating user:', error);
+        console.error('Error updating task:', error);
         return Response.json(
-            { error: error.message || 'Failed to update user' },
+            { error: error.message || 'Failed to update task' },
             { status: 500 }
         );
     }
@@ -71,12 +72,12 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
         );
     }
     const { id } = await params;
-    
-    const deletedUser = await User.findByIdAndDelete({ _id: id });
 
-    if (!deletedUser) {
-        return Response.json({ error: 'User not found' }, { status: 404 });
+    const deletedTask = await Task.findByIdAndDelete({ _id: id });
+
+    if (!deletedTask) {
+        return Response.json({ error: 'Task not found' }, { status: 404 });
     }
 
-    return Response.json({ message: `User deleted successfully` });
+    return Response.json({ message: `Task deleted successfully` });
 }

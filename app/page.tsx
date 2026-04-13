@@ -7,9 +7,11 @@ import { formatDate } from './lib/customMethod';
 
 interface Item {
   _id: string;
-  name: string;
+  title: string;
   about: string;
   description: string;
+  status: string;
+  priority: string;
   updatedAt: Date;
 }
 
@@ -21,30 +23,30 @@ export default function Page() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({ name: '', about: '', description: '' });
+  const [formData, setFormData] = useState({ title: '', about: '', description: '', status: 'pending', priority: 'medium' });
 
   const handleAddClick = () => {
-    setFormData({ name: '', about: '', description: ''});
+    setFormData({ title: '', about: '', description: '', status: 'pending', priority: 'medium' });
     setShowAddModal(true);
   };
 
   const handleEditClick = (item: Item) => {
     setEditingItem(item);
-    setFormData({ name: item.name, about: item.about, description: item.description });
+    setFormData({ title: item.title, about: item.about, description: item.description, status: item.status, priority: item.priority });
     setShowEditModal(true);
   };
 
   const handleDeleteClick = (id: string) => {
-    if (confirm('Are you sure you want to delete this item?')) {
-      fetch(`/api/users/${id}`, { method: 'DELETE' })
+    if (confirm('Are you sure you want to delete this task?')) {
+      fetch(`/api/tasks/${id}`, { method: 'DELETE' })
         .then(res => {
           if (res.ok) {
             setItems(prev => prev.filter(item => item._id !== id));
           } else {
-            console.error('Failed to delete user:', res);
+            console.error('Failed to delete task:', res);
           }
         })
-        .catch(error => console.error('Error deleting item:', error));
+        .catch(error => console.error('Error deleting task:', error));
     }
   };
 
@@ -55,14 +57,14 @@ export default function Page() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/users", {
+      const res = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
       if (res.ok) {
-        fetchUsers()
+        fetchTasks();
         setShowAddModal(false);
       }
     } catch (error) {
@@ -78,44 +80,46 @@ export default function Page() {
 
     try {
       const updatePayload: Record<string, string> = {
-        name: formData.name,
+        title: formData.title,
         about: formData.about,
         description: formData.description,
+        status: formData.status,
+        priority: formData.priority,
       };
 
-      const res = await fetch(`/api/users/${editingItem._id}`, {
+      const res = await fetch(`/api/tasks/${editingItem._id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatePayload),
       });
 
       if (res.ok) {
-        const updatedUser = await res.json();
-        setItems(prev => prev.map(item => item._id === editingItem._id ? updatedUser : item));
+        const updatedTask = await res.json();
+        setItems(prev => prev.map(item => item._id === editingItem._id ? updatedTask : item));
       } else {
-        console.log('Failed to update user:', res);
+        console.log('Failed to update task:', res);
       }
     } catch (error) {
-      console.error('Error updating item:', error);
+      console.error('Error updating task:', error);
     }
     setShowEditModal(false);
     setEditingItem(null);
-    setFormData({ name: '', about: '', description: '' });
+    setFormData({ title: '', about: '', description: '', status: 'pending', priority: 'medium' });
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const fetchUsers = async () => {
-    const res = await fetch("/api/users");
+  const fetchTasks = async () => {
+    const res = await fetch("/api/tasks");
     if (res.status === 401) {
       router.replace('/login');
       setItems([]);
       return;
     }
-    console.log('Fetch users response:', res);
+    console.log('Fetch tasks response:', res);
     setItems(res.ok ? await res.json() : []);
   };
 
@@ -125,7 +129,7 @@ export default function Page() {
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchTasks();
   }, []);
 
   return (
@@ -134,8 +138,8 @@ export default function Page() {
         {/* Header */}
         <div className='flex justify-between items-center mb-8'>
           <div>
-            <h1 className='text-4xl font-bold text-white mb-2'>TUDO</h1>
-            <p className='text-slate-400'>Manage your items</p>
+            <h1 className='text-4xl font-bold text-white mb-2'>Task Manager</h1>
+            <p className='text-slate-400'>Manage your tasks efficiently</p>
           </div>
           <div className='flex gap-4'>
             <button
@@ -150,7 +154,7 @@ export default function Page() {
               className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 shadow-lg'
             >
               <PlusIcon className='w-5 h-5' />
-              Add New
+              Add New Task
             </button>
           </div>
         </div>
@@ -161,9 +165,11 @@ export default function Page() {
             <table className='w-full'>
               <thead>
                 <tr className='bg-slate-700 border-b border-slate-600'>
-                  <th className='px-6 py-4 text-left text-sm font-semibold text-white'>Name</th>
+                  <th className='px-6 py-4 text-left text-sm font-semibold text-white'>Title</th>
                   <th className='px-6 py-4 text-left text-sm font-semibold text-white'>About</th>
                   <th className='px-6 py-4 text-left text-sm font-semibold text-white'>Description</th>
+                  <th className='px-6 py-4 text-left text-sm font-semibold text-white'>Status</th>
+                  <th className='px-6 py-4 text-left text-sm font-semibold text-white'>Priority</th>
                   <th className='px-6 py-4 text-left text-sm font-semibold text-white'>Date</th>
                   <th className='px-6 py-4 text-center text-sm font-semibold text-white'>Actions</th>
                 </tr>
@@ -177,13 +183,33 @@ export default function Page() {
                         }`}
                     >
                       <td className='px-6 py-4 text-sm text-white font-medium'>
-                        {item.name}
+                        {item.title}
                       </td>
                       <td className='px-6 py-4 text-sm text-slate-300'>
                         {item.about}
                       </td>
                       <td className='px-6 py-4 text-sm text-slate-300'>
-                        {item.description}
+                        {item.description.length > 50 ? item.description.substring(0, 50) + '...' : item.description}
+                      </td>
+                      <td className='px-6 py-4 text-sm'>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${item.status === 'completed'
+                            ? 'bg-green-900 text-green-200'
+                            : item.status === 'in-progress'
+                              ? 'bg-blue-900 text-blue-200'
+                              : 'bg-yellow-900 text-yellow-200'
+                          }`}>
+                          {item.status.charAt(0).toUpperCase() + item.status.slice(1).replace('-', ' ')}
+                        </span>
+                      </td>
+                      <td className='px-6 py-4 text-sm'>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${item.priority === 'high'
+                            ? 'bg-red-900 text-red-200'
+                            : item.priority === 'medium'
+                              ? 'bg-orange-900 text-orange-200'
+                              : 'bg-gray-900 text-gray-200'
+                          }`}>
+                          {item.priority.charAt(0).toUpperCase() + item.priority.slice(1)}
+                        </span>
                       </td>
                       <td className='px-6 py-4 text-sm text-slate-300'>
                         {item?.updatedAt ? formatDate(item.updatedAt) : 'N/A'}
@@ -210,8 +236,8 @@ export default function Page() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className='px-6 py-8 text-center text-slate-400'>
-                      No items found. Click "Add New" to create one.
+                    <td colSpan={7} className='px-6 py-8 text-center text-slate-400'>
+                      No tasks found. Click "Add New Task" to create one.
                     </td>
                   </tr>
                 )}
@@ -236,15 +262,15 @@ export default function Page() {
 
               <form onSubmit={handleAddSubmit}>
                 <div className='mb-4'>
-                  <label className='block text-sm font-medium text-white mb-2'>Name</label>
+                  <label className='block text-sm font-medium text-white mb-2'>Title</label>
                   <input
                     type='text'
-                    name='name'
-                    value={formData.name}
+                    name='title'
+                    value={formData.title}
                     onChange={handleInputChange}
                     required
                     className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
-                    placeholder='Enter task name'
+                    placeholder='Enter task title'
                   />
                 </div>
 
@@ -257,11 +283,11 @@ export default function Page() {
                     onChange={handleInputChange}
                     required
                     className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
-                    placeholder='Enter task about'
+                    placeholder='Enter about'
                   />
                 </div>
 
-                <div className='mb-8'>
+                <div className='mb-4'>
                   <label className='block text-sm font-medium text-white mb-2'>Description</label>
                   <input
                     type='text'
@@ -270,8 +296,36 @@ export default function Page() {
                     onChange={handleInputChange}
                     required
                     className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
+                    placeholder='Enter detailed description'
+                  />
+                </div>
+
+                <div className='mb-4'>
+                  <label className='block text-sm font-medium text-white mb-2'>Status</label>
+                  <select
+                    name='status'
+                    value={formData.status}
+                    onChange={handleInputChange}
+                    className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
                   >
-                  </input>
+                    <option value='pending'>Pending</option>
+                    <option value='in-progress'>In Progress</option>
+                    <option value='completed'>Completed</option>
+                  </select>
+                </div>
+
+                <div className='mb-6'>
+                  <label className='block text-sm font-medium text-white mb-2'>Priority</label>
+                  <select
+                    name='priority'
+                    value={formData.priority}
+                    onChange={handleInputChange}
+                    className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
+                  >
+                    <option value='low'>Low</option>
+                    <option value='medium'>Medium</option>
+                    <option value='high'>High</option>
+                  </select>
                 </div>
 
                 <div className='flex gap-3'>
@@ -311,15 +365,15 @@ export default function Page() {
 
               <form onSubmit={handleEditSubmit}>
                 <div className='mb-4'>
-                  <label className='block text-sm font-medium text-white mb-2'>Name</label>
+                  <label className='block text-sm font-medium text-white mb-2'>Title</label>
                   <input
                     type='text'
-                    name='name'
-                    value={formData.name}
+                    name='title'
+                    value={formData.title}
                     onChange={handleInputChange}
                     required
                     className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
-                    placeholder='Enter name'
+                    placeholder='Enter task title'
                   />
                 </div>
 
@@ -336,16 +390,45 @@ export default function Page() {
                   />
                 </div>
 
-                <div className='mb-8'>
+                <div className='mb-4'>
                   <label className='block text-sm font-medium text-white mb-2'>Description</label>
                   <input
                     type='text'
                     name='description'
                     value={formData.description}
                     onChange={handleInputChange}
+                    required
+                    className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
+                    placeholder='Enter detailed description'
+                  />
+                </div>
+
+                <div className='mb-4'>
+                  <label className='block text-sm font-medium text-white mb-2'>Status</label>
+                  <select
+                    name='status'
+                    value={formData.status}
+                    onChange={handleInputChange}
                     className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
                   >
-                  </input>
+                    <option value='pending'>Pending</option>
+                    <option value='in-progress'>In Progress</option>
+                    <option value='completed'>Completed</option>
+                  </select>
+                </div>
+
+                <div className='mb-6'>
+                  <label className='block text-sm font-medium text-white mb-2'>Priority</label>
+                  <select
+                    name='priority'
+                    value={formData.priority}
+                    onChange={handleInputChange}
+                    className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
+                  >
+                    <option value='low'>Low</option>
+                    <option value='medium'>Medium</option>
+                    <option value='high'>High</option>
+                  </select>
                 </div>
 
                 <div className='flex gap-3'>
