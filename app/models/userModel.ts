@@ -3,7 +3,7 @@ import mongoose, { Schema, Document, models, model } from "mongoose";
 // 👉 TypeScript interface (optional but recommended)
 export interface IUser extends Document {
     name: string;
-    email: string;
+    about: string;
     password: string;
     status: string;
     createdAt: Date;
@@ -18,11 +18,9 @@ const userSchema = new Schema<IUser>(
             required: [true, "Name is required"],
             trim: true,
         },
-        email: {
+        about: {
             type: String,
-            required: [true, "Email is required"],
-            unique: true,
-            lowercase: true,
+            required: [true, "About is required"],
             trim: true,
         },
         status: {

@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 interface Item {
   _id: string;
   name: string;
-  email: string;
+  about: string;
   status: string;
   password?: string;
 }
@@ -20,16 +20,16 @@ export default function Page() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({ name: '', email: '', status: 'active', password: '' });
+  const [formData, setFormData] = useState({ name: '', about: '', status: 'active', password: '' });
 
   const handleAddClick = () => {
-    setFormData({ name: '', email: '', status: 'active', password: '' });
+    setFormData({ name: '', about: '', status: 'active', password: '' });
     setShowAddModal(true);
   };
 
   const handleEditClick = (item: Item) => {
     setEditingItem(item);
-    setFormData({ name: item.name, email: item.email, status: item.status, password: '' });
+    setFormData({ name: item.name, about: item.about, status: item.status, password: '' });
     setShowEditModal(true);
   };
 
@@ -50,7 +50,7 @@ export default function Page() {
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (loading) return; // ✅ prevent double call
+    if (loading) return;
     setLoading(true);
 
     try {
@@ -62,7 +62,6 @@ export default function Page() {
 
       if (res.ok) {
         fetchUsers()
-        // setItems(prev => [...prev, data]);
         setShowAddModal(false);
       }
     } catch (error) {
@@ -79,7 +78,7 @@ export default function Page() {
     try {
       const updatePayload: Record<string, string> = {
         name: formData.name,
-        email: formData.email,
+        about: formData.about,
         status: formData.status,
       };
 
@@ -104,7 +103,7 @@ export default function Page() {
     }
     setShowEditModal(false);
     setEditingItem(null);
-    setFormData({ name: '', email: '', status: 'active', password: '' });
+    setFormData({ name: '', about: '', status: 'active', password: '' });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -166,7 +165,7 @@ export default function Page() {
               <thead>
                 <tr className='bg-slate-700 border-b border-slate-600'>
                   <th className='px-6 py-4 text-left text-sm font-semibold text-white'>Name</th>
-                  <th className='px-6 py-4 text-left text-sm font-semibold text-white'>Email</th>
+                  <th className='px-6 py-4 text-left text-sm font-semibold text-white'>About</th>
                   <th className='px-6 py-4 text-left text-sm font-semibold text-white'>Status</th>
                   <th className='px-6 py-4 text-left text-sm font-semibold text-white'>Password</th>
                   <th className='px-6 py-4 text-center text-sm font-semibold text-white'>Actions</th>
@@ -184,7 +183,7 @@ export default function Page() {
                         {item.name}
                       </td>
                       <td className='px-6 py-4 text-sm text-slate-300'>
-                        {item.email}
+                        {item.about}
                       </td>
                       <td className='px-6 py-4 text-sm'>
                         <span
@@ -236,7 +235,7 @@ export default function Page() {
           <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
             <div className='bg-slate-800 rounded-lg shadow-2xl p-8 w-full max-w-md border border-slate-700'>
               <div className='flex justify-between items-center mb-6'>
-                <h2 className='text-2xl font-bold text-white'>Add New Item</h2>
+                <h2 className='text-2xl font-bold text-white'>Add New Task</h2>
                 <button
                   onClick={() => setShowAddModal(false)}
                   className='text-slate-400 hover:text-white transition'
@@ -255,20 +254,20 @@ export default function Page() {
                     onChange={handleInputChange}
                     required
                     className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
-                    placeholder='Enter name'
+                    placeholder='Enter task name'
                   />
                 </div>
 
                 <div className='mb-4'>
-                  <label className='block text-sm font-medium text-white mb-2'>Email</label>
+                  <label className='block text-sm font-medium text-white mb-2'>About</label>
                   <input
-                    type='email'
-                    name='email'
-                    value={formData.email}
+                    type='text'
+                    name='about'
+                    value={formData.about}
                     onChange={handleInputChange}
                     required
                     className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
-                    placeholder='Enter email'
+                    placeholder='Enter task about'
                   />
                 </div>
 
@@ -347,15 +346,15 @@ export default function Page() {
                 </div>
 
                 <div className='mb-4'>
-                  <label className='block text-sm font-medium text-white mb-2'>Email</label>
+                  <label className='block text-sm font-medium text-white mb-2'>About</label>
                   <input
-                    type='email'
-                    name='email'
-                    value={formData.email}
+                    type='text'
+                    name='about'
+                    value={formData.about}
                     onChange={handleInputChange}
                     required
                     className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
-                    placeholder='Enter email'
+                    placeholder='Enter about'
                   />
                 </div>
 

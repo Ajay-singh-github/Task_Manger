@@ -27,17 +27,9 @@ export async function POST(request: Request) {
             );
         }
         const data = await request.json();
-        // Normalize status to lowercase
-        const normalizedData = {
-            ...data,
-        };
-        // Hash password if provided
-        if (normalizedData.password) {
-            const saltRounds = 10;
-            normalizedData.password = await bcrypt.hash(normalizedData.password, saltRounds);
-        }
+     
 
-        const user = new User(normalizedData);
+        const user = new User(data);
         const savedUser = await user.save();
         const savedUserObj = savedUser.toObject();
         delete savedUserObj.password;
