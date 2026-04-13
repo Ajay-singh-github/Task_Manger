@@ -51,12 +51,13 @@ export default function Page() {
     pageSize: isMobile ? 8 : 10, // Smaller pages for mobile infinite scroll
   });
 
-  // Redirect to login on unauthorized error
+  const isUnauthorized = queryError instanceof Error && queryError.message === 'Unauthorized';
+
   useEffect(() => {
-    if (queryError?.message === 'Unauthorized') {
-      router.push('/login');
+    if (isUnauthorized) {
+      router.replace('/login');
     }
-  }, [queryError, router]);
+  }, [isUnauthorized, router]);
 
   // Infinite scroll for mobile
   useInfiniteScroll({
@@ -65,6 +66,27 @@ export default function Page() {
     fetchNextPage,
     enabled: isMobile,
   });
+
+  if (isUnauthorized) {
+    return (
+      <div className='w-full min-h-screen flex items-center justify-center bg-slate-900 text-white'>
+        <div className='text-center'>
+          <p className='text-lg font-semibold'>Redirecting to login…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading && tasks.length === 0) {
+    return (
+      <div className='w-full min-h-screen flex items-center justify-center bg-slate-900 text-white'>
+        <div className='text-center'>
+          <div className='inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500' />
+          <p className='mt-4 text-lg font-semibold'>Loading dashboard…</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleLogout = async () => {
     try {
