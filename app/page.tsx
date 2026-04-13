@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Task } from './hooks';
 import { Header, TaskTable, AddTaskModal, EditTaskModal, Pagination } from './components';
 import { useTasksPaginated } from './hooks/useTasksPaginated';
 import { useInfiniteScroll } from './hooks/useInfiniteScroll';
 
 export default function Page() {
+  const router = useRouter();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Task | null>(null);
@@ -53,6 +55,23 @@ export default function Page() {
     fetchNextPage,
     enabled: isMobile,
   });
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        router.push('/login');
+      } else {
+        alert('Failed to logout');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      alert('Error during logout');
+    }
+  };
 
   const handleAddClick = () => {
     setShowAddModal(true);
@@ -108,7 +127,7 @@ export default function Page() {
   return (
     <div className='w-full min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-4 sm:p-6 lg:p-8'>
       <div className='max-w-7xl mx-auto'>
-        <Header onAddTask={handleAddClick} onLogout={() => {}} />
+        <Header onAddTask={handleAddClick} onLogout={handleLogout} />
 
         <div className="relative">
           <TaskTable
