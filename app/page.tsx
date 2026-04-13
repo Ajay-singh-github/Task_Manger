@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { TrashIcon, PencilIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, PencilIcon, PlusIcon, XMarkIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 
 interface Item {
@@ -20,10 +20,10 @@ export default function Page() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({ name: '', email: '', status: 'Active', password: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', status: 'active', password: '' });
 
   const handleAddClick = () => {
-    setFormData({ name: '', email: '', status: 'Active', password: '' });
+    setFormData({ name: '', email: '', status: 'active', password: '' });
     setShowAddModal(true);
   };
 
@@ -104,7 +104,7 @@ export default function Page() {
     }
     setShowEditModal(false);
     setEditingItem(null);
-    setFormData({ name: '', email: '', status: 'Active', password: '' });
+    setFormData({ name: '', email: '', status: 'active', password: '' });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -114,8 +114,10 @@ export default function Page() {
 
   const fetchUsers = async () => {
     const res = await fetch("/api/users");
-    if(res.status === 401) {
+    if (res.status === 401) {
       router.replace('/login');
+      setItems([]);
+      return;
     }
     console.log('Fetch users response:', res);
     setItems(res.ok ? await res.json() : []);
@@ -139,13 +141,22 @@ export default function Page() {
             <h1 className='text-4xl font-bold text-white mb-2'>TUDO</h1>
             <p className='text-slate-400'>Manage your items</p>
           </div>
-          <button
-            onClick={handleAddClick}
-            className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 shadow-lg'
-          >
-            <PlusIcon className='w-5 h-5' />
-            Add New
-          </button>
+          <div className='flex gap-4'>
+            <button
+              onClick={handleLogout}
+              className='bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 shadow-lg'
+            >
+              <ArrowRightOnRectangleIcon className='w-5 h-5 inline mr-2' />
+              Logout
+            </button>
+            <button
+              onClick={handleAddClick}
+              className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 shadow-lg'
+            >
+              <PlusIcon className='w-5 h-5' />
+              Add New
+            </button>
+          </div>
         </div>
 
         {/* Table */}
@@ -177,12 +188,12 @@ export default function Page() {
                       </td>
                       <td className='px-6 py-4 text-sm'>
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${item.status === 'Active'
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${item.status === 'active'
                             ? 'bg-green-900 text-green-200'
                             : 'bg-red-900 text-red-200'
                             }`}
                         >
-                          {item.status}
+                          {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
                         </span>
                       </td>
                       <td className='px-6 py-4 text-sm text-slate-300'>
@@ -269,8 +280,8 @@ export default function Page() {
                     onChange={handleInputChange}
                     className='w-full px-4 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg focus:outline-none focus:border-blue-500 transition'
                   >
-                    <option value='Active'>Active</option>
-                    <option value='Inactive'>Inactive</option>
+                    <option value='active'>Active</option>
+                    <option value='inactive'>Inactive</option>
                   </select>
                 </div>
 
