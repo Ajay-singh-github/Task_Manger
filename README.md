@@ -6,6 +6,7 @@ A modern, responsive task management application built with Next.js 16, featurin
 
 ### Core Functionality
 
+
 - ✅ **Task CRUD Operations** - Create, Read, Update, Delete tasks
 - ✅ **AI-Powered Descriptions** - Generate task descriptions using Google Gemini AI
 - ✅ **User Authentication** - Secure login/register system with JWT tokens
