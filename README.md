@@ -2,6 +2,7 @@
 
 A modern, responsive task management application built with Next.js 16, featuring real-time updates, pagination, infinite scroll, and comprehensive error handling.
 
+
 ## 🚀 Features
 
 
